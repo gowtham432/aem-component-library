@@ -1,0 +1,14 @@
+{
+  "provider": "YouTube",
+  "endpoint": "https://www.youtube.com/oembed",
+  "format": "JSON",
+  "scheme": [
+    "https://.*.youtube.com/watch.*",
+    "https://.*.youtube.com/v/.*",
+    "https://youtu.be/.*",
+    "https://.*.youtube-nocookie.com/watch.*"
+  ],
+  "unsafeContext": true,
+  "socketTimeout": 5000,
+  "connectionTimeout": 2000
+}
