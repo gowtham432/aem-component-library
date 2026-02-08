@@ -2,6 +2,9 @@
 <workspaceFilter version="1.0">
     <filter root="/conf/myaemproject" mode="merge"/>
     <filter root="/content/myaemproject" mode="merge"/>
+    <filter root="/conf/global/settings/workflow/launcher/config/2003389744" mode="replace"/>
+    <filter root="/conf/global/settings/workflow/models/TAG_AI_WF" mode="replace"/>
+    <filter root="/var/workflow/models/TAG_AI_WF" mode="replace"/>
     <filter root="/content/dam/myaemproject" mode="merge">
         <exclude pattern="/content/dam/myaemproject(/.*)?"/>
         <include pattern="/content/dam/myaemproject/jcr:content(/.*)?"/>

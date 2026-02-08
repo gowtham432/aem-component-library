@@ -1,0 +1,7 @@
+{
+  "openai.api.key": "your-openai-api-key",
+  "openai.api.url": "https://api.openai.com/v1/chat/completions",
+  "openai.model": "gpt-4o-mini",
+  "openai.max.tokens": 1000,
+  "openai.temperature": 0.3
+}
