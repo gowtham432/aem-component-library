@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component(service = AITaggingService.class, immediate = true)
 public class AITaggingServiceImpl implements AITaggingService {
@@ -75,21 +76,36 @@ public class AITaggingServiceImpl implements AITaggingService {
         }
 
         try {
+            // Get existing tags from the page
+            Tag[] existingTags = page.getTags();
+            LOG.info("Existing Tags: {}", Arrays.asList(existingTags));
+
             // Convert tag IDs to Tag objects
-            Tag[] tags = tagIds.stream()
+            Tag[] newTags = tagIds.stream()
                     .map(tagManager::resolve)
                     .filter(Objects::nonNull)
                     .toArray(Tag[]::new);
 
-            if (tags.length == 0) {
+            LOG.info("New Tags: {}", Arrays.asList(newTags));
+
+            if (newTags.length == 0) {
                 LOG.warn("No valid tags found to apply to page: {}", page.getPath());
                 return;
             }
 
-            // Apply tags
-            tagManager.setTags(page.getContentResource(), tags);
+            // Merge existing tags with new tags, removing duplicates
+            Tag[] mergedTags = Stream.concat(
+                            Arrays.stream(existingTags),
+                            Arrays.stream(newTags)
+                    )
+                    .distinct()
+                    .toArray(Tag[]::new);
 
-            LOG.info("Applied {} tags to page: {}", tags.length, page.getPath());
+            LOG.info("Merged Tags: {}", Arrays.asList(mergedTags));
+            // Apply tags
+            tagManager.setTags(page.getContentResource(), mergedTags);
+
+            LOG.info("Applied tags to: {} {} {} {}", newTags, existingTags, mergedTags, page.getPath());
 
         } catch (Exception e) {
             LOG.error("Error applying tags to page: " + page.getPath(), e);

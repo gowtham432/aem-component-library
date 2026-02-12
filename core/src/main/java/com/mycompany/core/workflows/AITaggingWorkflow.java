@@ -18,8 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,7 +71,6 @@ public class AITaggingWorkflow implements WorkflowProcess {
 
     private static final int MAX_DEPTH = 10;
     private static final Logger LOG = LoggerFactory.getLogger(AITaggingWorkflow.class);
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
     public void execute(WorkItem workItem, WorkflowSession workflowSession, MetaDataMap metaDataMap)
@@ -132,10 +129,6 @@ public class AITaggingWorkflow implements WorkflowProcess {
 
             // Build clean JSON structure by excluding system properties
             Map<String, Object> cleanJson = buildCleanJsonTree(pageResource, 0);
-
-            // Convert to JSON string
-            String jsonOutput = gson.toJson(cleanJson);
-            LOG.info("📋 Clean JSON output:\n{}", jsonOutput);
 
             // Extract text content for AI
             String textContent = extractTextFromJson(cleanJson);
