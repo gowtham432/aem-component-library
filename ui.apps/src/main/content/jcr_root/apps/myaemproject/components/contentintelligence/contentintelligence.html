@@ -1,0 +1,856 @@
+<!--/* Content Intelligence – Desktop Chat UI */-->
+
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+</style>
+
+<div id="ci-app">
+
+<style>
+/* ── Reset ────────────────────────────────────────────────── */
+#ci-app *, #ci-app *::before, #ci-app *::after { box-sizing: border-box; margin: 0; padding: 0; }
+#ci-app {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #111827;
+
+  --brand:        #4f46e5;
+  --brand-dk:     #3730a3;
+  --brand-lt:     #eef2ff;
+  --surface:      #ffffff;
+  --bg:           #f3f4f6;
+  --border:       #e5e7eb;
+  --border-focus: #6366f1;
+  --muted:        #6b7280;
+  --danger:       #dc2626;
+  --danger-lt:    #fef2f2;
+  --r:            8px;
+  --r-lg:         14px;
+}
+
+/* ── Full-page shell ──────────────────────────────────────── */
+.ci-shell {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════ */
+.ci-sidebar {
+  width: 252px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Brand */
+.ci-sidebar-brand {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ci-brand-icon {
+  width: 34px;
+  height: 34px;
+  background: var(--brand);
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.ci-brand-icon svg { width: 18px; height: 18px; color: #fff; }
+.ci-brand-name  { font-size: 0.88rem; font-weight: 700; color: #111827; letter-spacing: -0.01em; }
+.ci-brand-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+
+/* New conversation button */
+.ci-new-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 32px);
+  margin: 12px 16px;
+  padding: 8px 12px;
+  background: var(--brand);
+  border: none;
+  border-radius: var(--r);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.ci-new-btn:hover { background: var(--brand-dk); }
+.ci-new-btn svg   { width: 13px; height: 13px; }
+
+/* Page context */
+.ci-sidebar-section {
+  padding: 0 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ci-section-label {
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.ci-page-select {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: 0.78rem;
+  color: #111827;
+  background: var(--bg);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ci-page-select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: #fff;
+}
+.ci-page-hint {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 5px;
+  min-height: 14px;
+}
+
+/* Suggested questions */
+.ci-sidebar-qs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+.ci-sidebar-qs::-webkit-scrollbar { width: 3px; }
+.ci-sidebar-qs::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+
+.ci-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--r);
+  font-size: 0.78rem;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: background 0.12s, color 0.12s;
+}
+.ci-chip::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #d1d5db;
+  flex-shrink: 0;
+  margin-top: 5px;
+  transition: background 0.12s;
+}
+.ci-chip:hover {
+  background: var(--brand-lt);
+  color: var(--brand);
+}
+.ci-chip:hover::before { background: var(--brand); }
+
+/* Status */
+.ci-sidebar-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ci-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+.ci-status-dot--busy { background: #f59e0b; animation: ciBlink 1s ease infinite; }
+@keyframes ciBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.ci-status-text { font-size: 0.7rem; color: var(--muted); }
+
+/* ══════════════════════════════════════════════════════════
+   MAIN PANEL
+══════════════════════════════════════════════════════════ */
+.ci-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Top bar */
+.ci-topbar {
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.ci-topbar-title   { font-size: 0.85rem; font-weight: 600; color: #111827; }
+.ci-topbar-sep     { color: #d1d5db; font-size: 1rem; }
+.ci-topbar-context {
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Messages area */
+.ci-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 28px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scroll-behavior: smooth;
+}
+.ci-messages::-webkit-scrollbar { width: 4px; }
+.ci-messages::-webkit-scrollbar-track { background: transparent; }
+.ci-messages::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 6px; }
+.ci-messages::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Welcome screen */
+.ci-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: auto;
+  padding: 24px 20px 40px;
+  gap: 10px;
+  max-width: 460px;
+}
+.ci-welcome-icon {
+  width: 52px;
+  height: 52px;
+  background: var(--brand);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(79,70,229,0.28);
+  margin-bottom: 6px;
+}
+.ci-welcome-icon svg { width: 26px; height: 26px; color: #fff; }
+.ci-welcome-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+.ci-welcome-text {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.ci-welcome-hint {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+/* ── Message rows ─────────────────────────────────────────── */
+.ci-msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: ciIn 0.2s ease;
+}
+@keyframes ciIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* User message — right-aligned, no avatar */
+.ci-msg--user {
+  flex-direction: row-reverse;
+  padding-left: 80px;
+}
+
+/* AI message — left-aligned, with avatar */
+.ci-msg--ai {
+  padding-right: 80px;
+}
+
+.ci-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: var(--brand);
+  color: #fff;
+}
+.ci-msg-avatar svg { width: 13px; height: 13px; }
+
+.ci-msg-bubble {
+  padding: 10px 15px;
+  border-radius: var(--r-lg);
+  font-size: 0.86rem;
+  line-height: 1.68;
+  max-width: 680px;
+}
+
+/* AI bubble */
+.ci-msg--ai .ci-msg-bubble {
+  background: var(--surface);
+  color: #111827;
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* User bubble */
+.ci-msg--user .ci-msg-bubble {
+  background: var(--brand);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.22);
+}
+
+/* Bubble content */
+.ci-msg-bubble p   { margin: 0 0 8px; }
+.ci-msg-bubble p:last-child { margin: 0; }
+.ci-msg-bubble strong { font-weight: 600; }
+.ci-msg-bubble em     { font-style: italic; }
+.ci-msg-bubble code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82em;
+}
+.ci-msg--user .ci-msg-bubble code { background: rgba(255,255,255,0.2); }
+.ci-msg-bubble ul, .ci-msg-bubble ol { margin: 5px 0 5px 17px; }
+.ci-msg-bubble li   { margin-bottom: 3px; }
+.ci-msg-bubble h3   { font-size: 0.86rem; font-weight: 700; margin: 10px 0 4px; }
+.ci-msg-bubble h3:first-child { margin-top: 0; }
+
+/* Error */
+.ci-msg--error .ci-msg-bubble {
+  background: var(--danger-lt);
+  color: var(--danger);
+  border-color: #fecaca;
+}
+
+/* Sources */
+.ci-sources {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
+.ci-sources-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 0.72rem; color: var(--brand); font-weight: 500;
+  padding: 0; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.ci-sources-btn svg { width: 10px; height: 10px; transition: transform 0.15s; }
+.ci-sources-btn.open svg { transform: rotate(90deg); }
+.ci-sources-list { display: none; margin-top: 5px; padding: 0; list-style: none; }
+.ci-sources-list.open { display: block; }
+.ci-sources-list li {
+  font-family: monospace; font-size: 0.68rem;
+  color: var(--muted); margin-bottom: 2px; word-break: break-all;
+}
+.ci-sources-list li::before { content: "› "; color: var(--brand); font-weight: 700; }
+
+/* Typing indicator */
+.ci-typing {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: ciIn 0.2s ease;
+}
+.ci-typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 15px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border-bottom-left-radius: 3px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.ci-typing-dot {
+  width: 6px; height: 6px;
+  background: #c4c6e0; border-radius: 50%;
+  animation: ciDot 1.3s ease infinite;
+}
+.ci-typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.ci-typing-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes ciDot {
+  0%,60%,100% { transform: translateY(0); background: #c4c6e0; }
+  30%          { transform: translateY(-5px); background: var(--brand); }
+}
+
+/* ── Input bar ────────────────────────────────────────────── */
+.ci-input-area {
+  flex-shrink: 0;
+  padding: 12px 24px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.ci-input-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 8px 8px 8px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.ci-input-box:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  background: #fff;
+}
+.ci-textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: #111827;
+  resize: none;
+  outline: none;
+  line-height: 1.55;
+  min-height: 22px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 3px 0;
+}
+.ci-textarea::placeholder { color: #9ca3af; }
+.ci-textarea:disabled      { cursor: not-allowed; }
+.ci-send-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--r);
+  background: var(--brand);
+  border: none; color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+.ci-send-btn:hover:not(:disabled) { background: var(--brand-dk); transform: scale(1.05); }
+.ci-send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.ci-send-btn svg { width: 16px; height: 16px; }
+
+.ci-input-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 2px;
+}
+.ci-input-hint { font-size: 0.67rem; color: #9ca3af; }
+.ci-input-hint kbd {
+  background: #e5e7eb; border: 1px solid #d1d5db;
+  border-radius: 3px; padding: 1px 4px;
+  font-size: 0.62rem; font-family: inherit;
+}
+.ci-char-count               { font-size: 0.67rem; color: #9ca3af; }
+.ci-char-count--warn         { color: #f59e0b; }
+.ci-char-count--limit        { color: var(--danger); }
+</style>
+
+<!-- ══════════════════ MARKUP ══════════════════ -->
+<div class="ci-shell">
+
+  <!-- ── Sidebar ─────────────────────────────────── -->
+  <aside class="ci-sidebar">
+
+    <div class="ci-sidebar-brand">
+      <div class="ci-brand-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+        </svg>
+      </div>
+      <div class="ci-brand-name">Content Intelligence</div>
+      <div class="ci-brand-sub">AEM Site Assistant · Powered by AI</div>
+    </div>
+
+    <button class="ci-new-btn" id="ciNewBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+      </svg>
+      New conversation
+    </button>
+
+    <div class="ci-sidebar-section">
+      <span class="ci-section-label">Page context</span>
+      <select class="ci-page-select" id="ciPageSelect">
+        <option value="">Site-wide (no specific page)</option>
+      </select>
+      <div class="ci-page-hint" id="ciPageHint">Loading pages…</div>
+    </div>
+
+    <div class="ci-sidebar-qs">
+      <span class="ci-section-label">Suggested questions</span>
+      <button class="ci-chip" data-q="Show me the top 10 most visited pages on this site">Top pages by traffic</button>
+      <button class="ci-chip" data-q="Which pages have high traffic but a bad bounce rate?">High traffic, high bounce rate</button>
+      <button class="ci-chip" data-q="Find hidden gem pages — good engagement but low traffic">Find hidden gem pages</button>
+      <button class="ci-chip" data-q="Which pages are trending up in traffic this month?">Trending pages this month</button>
+      <button class="ci-chip" data-q="Which pages haven't been updated in over 6 months?">Stale content</button>
+      <button class="ci-chip" data-q="What components appear most often on our best-performing pages?">Best-performing components</button>
+      <button class="ci-chip" data-q="How is this page performing compared to similar pages on the site?">Benchmark this page</button>
+      <button class="ci-chip" data-q="Summarise all content on the currently selected page">Summarise selected page</button>
+      <button class="ci-chip" data-q="Which pages have the lowest average time on page?">Lowest engagement pages</button>
+      <button class="ci-chip" data-q="What are the top traffic sources driving visitors to this site?">Top traffic sources</button>
+    </div>
+
+    <div class="ci-sidebar-footer">
+      <span class="ci-status-dot" id="ciStatusDot"></span>
+      <span class="ci-status-text" id="ciStatusText">Ready</span>
+    </div>
+
+  </aside>
+
+  <!-- ── Main panel ──────────────────────────────── -->
+  <div class="ci-main">
+
+    <div class="ci-topbar">
+      <span class="ci-topbar-title">Chat</span>
+      <span class="ci-topbar-sep">/</span>
+      <span class="ci-topbar-context" id="ciContextLabel">Site-wide</span>
+    </div>
+
+    <div class="ci-messages" id="ciMessages" role="log" aria-live="polite">
+
+      <div class="ci-welcome" id="ciWelcome">
+        <div class="ci-welcome-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+          </svg>
+        </div>
+        <div class="ci-welcome-title">How can I help you today?</div>
+        <div class="ci-welcome-text">Ask me anything about your AEM site — page performance, content gaps, components, traffic insights, and more. Select a page on the left to focus on a specific page.</div>
+        <span class="ci-welcome-hint">Pick a suggestion from the left or type your own question below</span>
+      </div>
+
+    </div>
+
+    <div class="ci-input-area">
+      <div class="ci-input-box">
+        <textarea
+          class="ci-textarea"
+          id="ciInput"
+          placeholder="Ask anything about your site…"
+          rows="1"
+          maxlength="1000"
+          aria-label="Your message"></textarea>
+        <button class="ci-send-btn" id="ciSend" disabled aria-label="Send">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ci-input-meta">
+        <span class="ci-input-hint"><kbd>Enter</kbd> send &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> new line</span>
+        <span class="ci-char-count" id="ciCharCount">0 / 1000</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- /ci-shell -->
+
+<script>
+(function () {
+  'use strict';
+
+  var API_CHAT  = '/bin/api/contentIntelligence';
+  var API_PAGES = '/bin/api/pageList';
+  var MAX_HIST  = 20;
+
+  var elMessages     = document.getElementById('ciMessages');
+  var elWelcome      = document.getElementById('ciWelcome');
+  var elInput        = document.getElementById('ciInput');
+  var elSend         = document.getElementById('ciSend');
+  var elPageSelect   = document.getElementById('ciPageSelect');
+  var elPageHint     = document.getElementById('ciPageHint');
+  var elNewBtn       = document.getElementById('ciNewBtn');
+  var elStatusDot    = document.getElementById('ciStatusDot');
+  var elStatusText   = document.getElementById('ciStatusText');
+  var elCharCount    = document.getElementById('ciCharCount');
+  var elContextLabel = document.getElementById('ciContextLabel');
+
+  var history = [];
+  var busy    = false;
+
+  /* ── Boot ──────────────────────────────────────────────── */
+  function init() {
+    loadPages();
+    bindEvents();
+    elInput.focus();
+  }
+
+  /* ── Page list ─────────────────────────────────────────── */
+  function loadPages() {
+    fetch(API_PAGES, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        elPageHint.textContent = '';
+        if (!d.pages || !d.pages.length) { elPageHint.textContent = 'No pages found'; return; }
+        d.pages.forEach(function (p) {
+          var o = document.createElement('option');
+          o.value = p.path;
+          o.textContent = p.title;
+          elPageSelect.appendChild(o);
+        });
+      })
+      .catch(function () { elPageHint.textContent = 'Could not load pages'; });
+  }
+
+  /* ── Events ────────────────────────────────────────────── */
+  function bindEvents() {
+    elSend.addEventListener('click', send);
+
+    elInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+
+    elInput.addEventListener('input', function () {
+      autoResize();
+      updateCount();
+      elSend.disabled = elInput.value.trim() === '' || busy;
+    });
+
+    elPageSelect.addEventListener('change', function () {
+      var sel = elPageSelect.options[elPageSelect.selectedIndex];
+      elContextLabel.textContent = sel.value ? sel.textContent : 'Site-wide';
+    });
+
+    elNewBtn.addEventListener('click', newChat);
+
+    document.querySelectorAll('.ci-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var q = chip.dataset.q;
+        if (!q) return;
+        elInput.value = q;
+        elInput.dispatchEvent(new Event('input'));
+        send();
+      });
+    });
+  }
+
+  function autoResize() {
+    elInput.style.height = 'auto';
+    elInput.style.height = Math.min(elInput.scrollHeight, 120) + 'px';
+  }
+
+  function updateCount() {
+    var n = elInput.value.length;
+    elCharCount.textContent = n + ' / 1000';
+    elCharCount.className = 'ci-char-count' + (n > 900 ? ' ci-char-count--limit' : n > 750 ? ' ci-char-count--warn' : '');
+  }
+
+  function newChat() {
+    history = [];
+    // Remove all messages except welcome
+    var kids = Array.prototype.slice.call(elMessages.children);
+    kids.forEach(function (k) { if (k !== elWelcome) k.remove(); });
+    elWelcome.style.display = '';
+    setBusy(false);
+  }
+
+  /* ── Send ──────────────────────────────────────────────── */
+  function send() {
+    var q = elInput.value.trim();
+    if (!q || busy) return;
+
+    var pagePath = elPageSelect.value || '';
+
+    hideWelcome();
+    addMsg('user', q);
+    elInput.value = '';
+    elInput.style.height = 'auto';
+    updateCount();
+    setBusy(true);
+
+    var tid = showTyping();
+
+    fetch(API_CHAT, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, pagePath: pagePath, conversationHistory: history.slice() })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        removeTyping(tid);
+        setBusy(false);
+        if (data.error) {
+          addMsg('ai', data.error, null, true);
+        } else {
+          addMsg('ai', data.answer, data.sources);
+          history.push({ role: 'user', content: q });
+          history.push({ role: 'assistant', content: data.answer });
+          if (history.length > MAX_HIST) history = history.slice(-MAX_HIST);
+        }
+      })
+      .catch(function (err) {
+        removeTyping(tid);
+        setBusy(false);
+        addMsg('ai', 'Could not reach the server. Please try again.', null, true);
+        console.error('CI:', err);
+      });
+  }
+
+  /* ── Render messages ───────────────────────────────────── */
+  function addMsg(role, text, sources, isErr) {
+    var row = document.createElement('div');
+    row.className = 'ci-msg ci-msg--' + role + (isErr ? ' ci-msg--error' : '');
+
+    if (role === 'ai') {
+      var avatar = document.createElement('div');
+      avatar.className = 'ci-msg-avatar';
+      avatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>';
+      row.appendChild(avatar);
+    }
+
+    var bubble = document.createElement('div');
+    bubble.className = 'ci-msg-bubble';
+    bubble.innerHTML = fmt(text);
+
+    if (sources && sources.length) {
+      var src = document.createElement('div');
+      src.className = 'ci-sources';
+      var btn = document.createElement('button');
+      btn.className = 'ci-sources-btn';
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>' +
+        sources.length + ' source' + (sources.length !== 1 ? 's' : '');
+      var list = document.createElement('ul');
+      list.className = 'ci-sources-list';
+      sources.forEach(function (s) {
+        var li = document.createElement('li');
+        li.textContent = s;
+        list.appendChild(li);
+      });
+      btn.addEventListener('click', function () {
+        btn.classList.toggle('open');
+        list.classList.toggle('open');
+      });
+      src.appendChild(btn);
+      src.appendChild(list);
+      bubble.appendChild(src);
+    }
+
+    row.appendChild(bubble);
+    elMessages.appendChild(row);
+    elMessages.scrollTop = elMessages.scrollHeight;
+  }
+
+  function showTyping() {
+    var id = 'ty-' + Date.now();
+    var row = document.createElement('div');
+    row.className = 'ci-typing';
+    row.id = id;
+
+    var avatar = document.createElement('div');
+    avatar.className = 'ci-msg-avatar';
+    avatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>';
+
+    var dots = document.createElement('div');
+    dots.className = 'ci-typing-dots';
+    dots.innerHTML = '<div class="ci-typing-dot"></div><div class="ci-typing-dot"></div><div class="ci-typing-dot"></div>';
+
+    row.appendChild(avatar);
+    row.appendChild(dots);
+    elMessages.appendChild(row);
+    elMessages.scrollTop = elMessages.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) { var el = document.getElementById(id); if (el) el.remove(); }
+
+  function hideWelcome() { if (elWelcome) elWelcome.style.display = 'none'; }
+
+  /* ── Helpers ───────────────────────────────────────────── */
+  function setBusy(val) {
+    busy = val;
+    elInput.disabled = val;
+    elSend.disabled  = val || elInput.value.trim() === '';
+    elStatusDot.className = 'ci-status-dot' + (val ? ' ci-status-dot--busy' : '');
+    elStatusText.textContent = val ? 'Thinking…' : 'Ready';
+  }
+
+  function fmt(text) {
+    if (!text) return '';
+    return text.split(/\n{2,}/).map(function (para) {
+      var lines = para.split('\n');
+      var isList = lines.length > 1 && lines.every(function (l) {
+        return /^\s*[-*•]\s/.test(l) || l.trim() === '';
+      });
+      if (isList) {
+        return '<ul>' + lines.filter(function(l){return l.trim();})
+          .map(function(l){ return '<li>' + inl(l.replace(/^\s*[-*•]\s+/,'')) + '</li>'; }).join('') + '</ul>';
+      }
+      return '<p>' + lines.map(inl).join('<br>') + '</p>';
+    }).join('');
+  }
+
+  function inl(t) {
+    t = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    t = t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    t = t.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    t = t.replace(/`(.+?)`/g,'<code>$1</code>');
+    return t;
+  }
+
+  /* ── Start ─────────────────────────────────────────────── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+}());
+</script>
+
+</div>

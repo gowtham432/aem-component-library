@@ -1,0 +1,5 @@
+{
+  "user.mapping": [
+    "myaemproject.core:content-intelligence-service=content-intelligence-service"
+  ]
+}

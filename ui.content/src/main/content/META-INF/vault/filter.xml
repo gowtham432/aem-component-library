@@ -2,6 +2,7 @@
 <workspaceFilter version="1.0">
     <filter root="/conf/myaemproject" mode="merge"/>
     <filter root="/content/myaemproject" mode="merge"/>
+    <filter root="/content/content-intelligence" mode="merge"/>
     <filter root="/conf/global/settings/workflow/models/TAG_AI_WF" mode="replace"/>
     <filter root="/var/workflow/models/TAG_AI_WF" mode="replace"/>
     <filter root="/content/dam/myaemproject" mode="merge">
@@ -10,4 +11,5 @@
     </filter>
     <filter root="/content/dam/myaemproject/asset.jpg" mode="merge"/>
     <filter root="/content/experience-fragments/myaemproject" mode="merge"/>
+    <filter root="/var/content-intelligence" mode="merge"/>
 </workspaceFilter>

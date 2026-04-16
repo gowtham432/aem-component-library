@@ -1,0 +1,9 @@
+{
+  "openai.api.key": "your-openai-api-key",
+  "openai.embedding.model": "your-embedding-model",
+  "openai.chat.model": "add-model-you-want", 
+  "pinecone.api.key": "your-pinecone-api-key",
+  "pinecone.index.name": "your-index-name",
+  "pinecone.base.url": "your-pinecone-url",
+  "content.root.path": "your-content-root-path"
+}

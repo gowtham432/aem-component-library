@@ -1,7 +1,5 @@
 {
-    "scripts": [
-        "create path (sling:OrderedFolder) /content/dam/myaemproject",
-        "create path (nt:unstructured) /content/dam/myaemproject/jcr:content",
-        "set properties on /content/dam/myaemproject/jcr:content\n  set cq:conf{String} to /conf/myaemproject\n  set jcr:title{String} to \"My AEM Project\"\nend"
-    ]
+  "scripts": [
+    "create service user content-intelligence-service with path system/aisearch\ncreate path (nt:unstructured) /var/content-intelligence\nset ACL for content-intelligence-service\n  allow jcr:read on /content\n  allow jcr:read,rep:write,jcr:addChildNodes,jcr:modifyProperties on /var/content-intelligence\nend"
+  ]
 }

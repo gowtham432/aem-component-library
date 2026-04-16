@@ -1,0 +1,7 @@
+{
+  "filter.excluded.paths": [
+    "/bin/api/pageList",
+    "/bin/api/seedData",
+    "/bin/api/contentIntelligence"
+  ]
+}
