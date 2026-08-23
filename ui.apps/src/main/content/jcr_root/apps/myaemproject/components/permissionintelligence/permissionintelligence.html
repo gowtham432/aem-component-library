@@ -1,0 +1,550 @@
+<!--/* Permission Intelligence – Access Diagnosis */-->
+
+<style>
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+</style>
+
+<div id="pi-app">
+<style>
+#pi-app *, #pi-app *::before, #pi-app *::after { box-sizing: border-box; }
+#pi-app {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #111827;
+  padding: 24px;
+
+  --allow:    #059669;
+  --allow-bg: #ecfdf5;
+  --deny:     #dc2626;
+  --deny-bg:  #fef2f2;
+  --brand:    #4f46e5;
+  --brand-dk: #3730a3;
+  --border:   #d1d5db;
+  --muted:    #6b7280;
+  --surface:  #ffffff;
+  --warn:     #b45309;
+  --warn-bg:  #fffbeb;
+}
+
+.pi-shell { max-width: 860px; margin: 0 auto; }
+
+.pi-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+.pi-subtitle { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+
+/* ── Input panel ─────────────────────────────────── */
+.pi-input-panel {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.pi-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; min-width: 180px; }
+.pi-field--privileges { flex: 0 1 220px; min-width: 180px; }
+.pi-field--button { flex: 0 0 auto; }
+.pi-field--button label { visibility: hidden; }
+.pi-field label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+.pi-field label .pi-required { color: var(--deny); }
+.pi-field input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.pi-btn {
+  padding: 9px 18px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.pi-btn:hover:not(:disabled) { background: var(--brand-dk); }
+.pi-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Privilege multi-select dropdown ────────────────── */
+.pi-multiselect { position: relative; }
+.pi-multiselect-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+  cursor: pointer;
+}
+.pi-multiselect-panel {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 340px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 6px;
+}
+.pi-multiselect-panel.pi-open { display: block; }
+.pi-ms-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.pi-ms-option:hover { background: #f3f4f6; }
+
+.pi-selected-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px 3px 10px;
+  background: #eef2ff;
+  color: var(--brand-dk);
+  border-radius: 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pi-chip button {
+  border: none;
+  background: none;
+  color: var(--brand-dk);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.pi-error {
+  display: none;
+  background: var(--deny-bg);
+  color: var(--deny);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+
+.pi-loading {
+  display: none;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ── Results ──────────────────────────────────────── */
+.pi-results { display: none; }
+.pi-results-heading {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.pi-results-heading strong { color: #111827; }
+
+.pi-check {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.pi-check-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.pi-check-label { font-size: 1rem; font-weight: 700; flex: 1; }
+.pi-check-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.pi-check-verdict--allow { background: var(--allow-bg); color: var(--allow); }
+.pi-check-verdict--deny  { background: var(--deny-bg); color: var(--deny); }
+.pi-check-verdict--warn  { background: var(--warn-bg); color: var(--warn); }
+
+.pi-check-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+.pi-remediation {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 12px 0 4px;
+  color: #374151;
+}
+.pi-explanation-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-top: 10px;
+}
+
+.pi-verify-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.pi-verify-line--ok { color: var(--allow); }
+.pi-verify-line--mismatch { color: var(--warn); font-weight: 600; }
+
+.pi-rule-card {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.pi-rule-card .pi-rule-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.pi-rule-badge--allow { background: var(--allow-bg); color: var(--allow); }
+.pi-rule-badge--deny  { background: var(--deny-bg); color: var(--deny); }
+.pi-rule-card .pi-rule-path { color: var(--muted); }
+.pi-rule-via { color: var(--muted); margin-top: 3px; }
+</style>
+
+<div class="pi-shell">
+  <div class="pi-title">AEM Permission Intelligence</div>
+  <div class="pi-subtitle">Enter a user and the exact path they can't access. We'll tell you which group is responsible and what to do about it.</div>
+
+  <div class="pi-input-panel">
+    <div class="pi-field">
+      <label for="piUserId">User ID <span class="pi-required">*</span></label>
+      <input type="text" id="piUserId" placeholder="e.g. jdoe" autocomplete="off"/>
+    </div>
+    <div class="pi-field">
+      <label for="piPath">Path <span class="pi-required">*</span></label>
+      <input type="text" id="piPath" placeholder="/content/mysite/en/us" autocomplete="off"/>
+    </div>
+    <div class="pi-field pi-field--privileges">
+      <label id="piPrivilegesLabel">Access to check</label>
+      <div class="pi-multiselect" id="piPrivilegesSelect">
+        <button type="button" class="pi-multiselect-toggle" id="piPrivilegesToggle" aria-haspopup="listbox" aria-expanded="false">
+          <span id="piPrivilegesSummary">Loading…</span>
+          <span class="pi-caret">&#9662;</span>
+        </button>
+        <div class="pi-multiselect-panel" id="piPrivilegesPanel" role="listbox" aria-multiselectable="true"></div>
+      </div>
+      <div class="pi-selected-chips" id="piSelectedChips"></div>
+    </div>
+    <div class="pi-field pi-field--button">
+      <label>&nbsp;</label>
+      <button class="pi-btn" id="piAnalyzeBtn">Diagnose</button>
+    </div>
+  </div>
+
+  <div class="pi-error" id="piError"></div>
+  <div class="pi-loading" id="piLoading">Analyzing…</div>
+
+  <div class="pi-results" id="piResults">
+    <div class="pi-results-heading">Results for <strong id="piResultUser"></strong> at <strong id="piResultPath"></strong></div>
+    <div id="piChecks"></div>
+  </div>
+</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = '/bin/permission-intelligence.json';
+  var PRIVILEGES_API = '/bin/permission-intelligence/privileges.json';
+
+  var elUserId    = document.getElementById('piUserId');
+  var elPath      = document.getElementById('piPath');
+  var elAnalyze   = document.getElementById('piAnalyzeBtn');
+  var elError     = document.getElementById('piError');
+  var elLoading   = document.getElementById('piLoading');
+  var elResults   = document.getElementById('piResults');
+  var elResultUser = document.getElementById('piResultUser');
+  var elResultPath = document.getElementById('piResultPath');
+  var elChecks    = document.getElementById('piChecks');
+
+  var elPrivToggle  = document.getElementById('piPrivilegesToggle');
+  var elPrivSummary = document.getElementById('piPrivilegesSummary');
+  var elPrivPanel   = document.getElementById('piPrivilegesPanel');
+  var elPrivSelect  = document.getElementById('piPrivilegesSelect');
+  var elSelectedChips = document.getElementById('piSelectedChips');
+
+  var privilegeOptions = []; // [{value, label, default}]
+
+  function loadPrivileges() {
+    fetch(PRIVILEGES_API, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        privilegeOptions = (data && data.privileges) || [];
+        renderPrivilegesPanel();
+      })
+      .catch(function (err) {
+        elPrivSummary.textContent = 'Unavailable';
+        console.error('PI:', err);
+      });
+  }
+
+  function renderPrivilegesPanel() {
+    elPrivPanel.innerHTML = '';
+    privilegeOptions.forEach(function (opt, i) {
+      var id = 'piPriv_' + i;
+      var row = document.createElement('label');
+      row.className = 'pi-ms-option';
+      row.setAttribute('for', id);
+
+      var checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = id;
+      checkbox.value = opt.value;
+      checkbox.checked = false;
+      checkbox.addEventListener('change', onPrivilegesSelectionChanged);
+
+      var text = document.createElement('span');
+      text.textContent = opt.label;
+
+      row.appendChild(checkbox);
+      row.appendChild(text);
+      elPrivPanel.appendChild(row);
+    });
+    onPrivilegesSelectionChanged();
+  }
+
+  function getSelectedPrivileges() {
+    return Array.prototype.slice.call(elPrivPanel.querySelectorAll('input:checked')).map(function (cb) { return cb.value; });
+  }
+
+  function labelFor(value) {
+    var found = privilegeOptions.filter(function (o) { return o.value === value; })[0];
+    return found ? found.label : value;
+  }
+
+  function onPrivilegesSelectionChanged() {
+    var selected = getSelectedPrivileges();
+    elPrivSummary.textContent = selected.length === 0 ? 'Select access to check…' : selected.length + ' selected';
+    renderSelectedChips(selected);
+  }
+
+  function renderSelectedChips(selected) {
+    elSelectedChips.innerHTML = '';
+    selected.forEach(function (value) {
+      var chip = document.createElement('span');
+      chip.className = 'pi-chip';
+
+      var label = document.createElement('span');
+      label.textContent = labelFor(value);
+      chip.appendChild(label);
+
+      var remove = document.createElement('button');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', 'Remove ' + labelFor(value));
+      remove.innerHTML = '&times;';
+      remove.addEventListener('click', function () {
+        var checkbox = Array.prototype.slice.call(elPrivPanel.querySelectorAll('input')).filter(function (cb) { return cb.value === value; })[0];
+        if (checkbox) { checkbox.checked = false; onPrivilegesSelectionChanged(); }
+      });
+      chip.appendChild(remove);
+
+      elSelectedChips.appendChild(chip);
+    });
+  }
+
+  function togglePrivilegesPanel(open) {
+    var willOpen = typeof open === 'boolean' ? open : !elPrivPanel.classList.contains('pi-open');
+    elPrivPanel.classList.toggle('pi-open', willOpen);
+    elPrivToggle.setAttribute('aria-expanded', String(willOpen));
+  }
+
+  elPrivToggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    togglePrivilegesPanel();
+  });
+  document.addEventListener('click', function (e) {
+    if (!elPrivSelect.contains(e.target)) { togglePrivilegesPanel(false); }
+  });
+
+  function analyze() {
+    var userId = elUserId.value.trim();
+    var path = elPath.value.trim();
+    var selectedPrivileges = getSelectedPrivileges();
+
+    if (!userId) { showError('Enter a user ID.'); return; }
+    if (!path) { showError('Enter the path to diagnose.'); return; }
+    if (path.charAt(0) !== '/') { showError('Path must be absolute, starting with "/".'); return; }
+    if (selectedPrivileges.length === 0) { showError('Select at least one access type to check.'); return; }
+
+    var url = API + '?userId=' + encodeURIComponent(userId) + '&path=' + encodeURIComponent(path)
+      + '&privileges=' + encodeURIComponent(selectedPrivileges.join(','));
+
+    togglePrivilegesPanel(false);
+    hideError();
+    hideResults();
+    setBusy(true);
+
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        setBusy(false);
+        if (data.status === 'error') {
+          showError(data.message || 'Request failed.');
+          return;
+        }
+        render(data);
+      })
+      .catch(function (err) {
+        setBusy(false);
+        showError('Could not reach the server.');
+        console.error('PI:', err);
+      });
+  }
+
+  function render(data) {
+    elResultUser.textContent = data.userId;
+    elResultPath.textContent = data.diagnosis.path;
+    elChecks.innerHTML = '';
+
+    data.diagnosis.checks.forEach(function (check) {
+      elChecks.appendChild(renderCheck(check));
+    });
+
+    elResults.style.display = 'block';
+  }
+
+  function renderCheck(check) {
+    var card = document.createElement('div');
+    card.className = 'pi-check';
+
+    var head = document.createElement('div');
+    head.className = 'pi-check-head';
+    if (check.effectivelyBlocked) {
+      head.innerHTML =
+        '<span class="pi-check-label">' + esc(check.label) + '</span>' +
+        '<span class="pi-check-verdict pi-check-verdict--allow">&#10003; Oak: Allowed</span>' +
+        '<span class="pi-check-verdict pi-check-verdict--warn">&#9888; Effectively Blocked</span>';
+    } else {
+      head.innerHTML =
+        '<span class="pi-check-label">' + esc(check.label) + '</span>' +
+        '<span class="pi-check-verdict pi-check-verdict--' + (check.blocked ? 'deny' : 'allow') + '">' +
+        (check.blocked ? '&#10007; Blocked' : '&#10003; Allowed') + '</span>';
+    }
+    card.appendChild(head);
+
+    var body = document.createElement('div');
+    body.className = 'pi-check-body';
+
+    if (check.effectivelyBlocked) {
+      var warnLine = document.createElement('div');
+      warnLine.className = 'pi-verify-line pi-verify-line--mismatch';
+      warnLine.innerHTML = '&#9888; Oak allows this, but jcr:read is denied on this path, so it cannot actually be reached.';
+      body.appendChild(warnLine);
+
+      var reason = document.createElement('div');
+      reason.className = 'pi-remediation';
+      reason.textContent = check.effectiveBlockReason || '';
+      body.appendChild(reason);
+    } else {
+      body.appendChild(verifyLine(check));
+
+      if (check.aiExplanation) {
+        var label = document.createElement('div');
+        label.className = 'pi-explanation-label';
+        label.textContent = 'Why';
+        body.appendChild(label);
+      }
+
+      var remediation = document.createElement('div');
+      remediation.className = 'pi-remediation';
+      remediation.textContent = check.aiExplanation || check.remediation || '';
+      body.appendChild(remediation);
+    }
+
+    if (check.decidingRule) {
+      body.appendChild(ruleCard(check.decidingRule, check.blocked ? 'deny' : 'allow'));
+    }
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function verifyLine(check) {
+    var el = document.createElement('div');
+    if (check.mismatch) {
+      el.className = 'pi-verify-line pi-verify-line--mismatch';
+      el.innerHTML = '&#9888; Our trace and the real evaluator disagreed here — the verdict above is the verified one, but treat the named rule as a strong lead, not a certainty.';
+    } else if (check.verifiedEffect) {
+      el.className = 'pi-verify-line pi-verify-line--ok';
+      el.innerHTML = '&#10003; Cross-checked against the real evaluator';
+    } else {
+      el.className = 'pi-verify-line';
+      el.textContent = 'Could not be independently verified (see remediation below).';
+    }
+    return el;
+  }
+
+  function ruleCard(rule, kind) {
+    var el = document.createElement('div');
+    el.className = 'pi-rule-card';
+    el.innerHTML =
+      '<span class="pi-rule-badge pi-rule-badge--' + kind + '">' + esc(rule.type) + '</span>' +
+      '<strong>' + esc(rule.principal) + '</strong> <span class="pi-rule-path">at ' + esc(rule.setAtPath) + '</span>' +
+      (rule.glob ? ' <span class="pi-rule-path">(glob: ' + esc(rule.glob) + ')</span>' : '') +
+      (rule.privileges && rule.privileges.length ? ' <span class="pi-rule-path">(' + esc(rule.privileges.join(', ')) + ')</span>' : '') +
+      '<div class="pi-rule-via">via ' + esc((rule.via || []).join(' → ')) + '</div>';
+    return el;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function setBusy(busy) {
+    elAnalyze.disabled = busy;
+    elLoading.style.display = busy ? 'block' : 'none';
+  }
+
+  function showError(msg) { elError.textContent = msg; elError.style.display = 'block'; }
+  function hideError() { elError.style.display = 'none'; }
+  function hideResults() { elResults.style.display = 'none'; }
+
+  elAnalyze.addEventListener('click', analyze);
+  elUserId.addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(); });
+  elPath.addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(); });
+
+  loadPrivileges();
+
+}());
+</script>
